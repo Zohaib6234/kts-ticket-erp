@@ -1,0 +1,58 @@
+Folder PATH listing
+Volume serial number is 000000CC 8E86:3782
+C:\USERS\ZOHAIB\DESKTOP\KTS-TICKET-ERP\SRC
+ÃÄÄÄapp
+³   ³   favicon.ico
+³   ³   globals.css
+³   ³   layout.tsx
+³   ³   page.tsx
+³   ³   
+³   ÃÄÄÄ(dashboard)
+³   ³   ³   layout.tsx
+³   ³   ³   
+³   ³   ÃÄÄÄdashboard
+³   ³   ³       page.tsx
+³   ³   ³       
+³   ³   ÃÄÄÄinventory
+³   ³   ÃÄÄÄreports
+³   ³   ÃÄÄÄroutes
+³   ³   ³       page.tsx
+³   ³   ³       
+³   ³   ÃÄÄÄsupervisors
+³   ³   ÀÄÄÄticket-issue
+³   ÀÄÄÄapi
+³       ÀÄÄÄroutes
+³               route.ts
+³               
+ÃÄÄÄcomponents
+³   ÃÄÄÄcommon
+³   ÃÄÄÄlayout
+³   ³       DashboardCard.tsx
+³   ³       Header.tsx
+³   ³       Sidebar.tsx
+³   ³       
+³   ÀÄÄÄui
+ÃÄÄÄhooks
+ÃÄÄÄlib
+³       prisma.ts
+³       
+ÃÄÄÄmodules
+³   ÃÄÄÄcashier
+³   ÃÄÄÄclosing
+³   ÃÄÄÄdashboard
+³   ÃÄÄÄinventory
+³   ÃÄÄÄissue
+³   ÃÄÄÄmasters
+³   ÃÄÄÄreports
+³   ÃÄÄÄroutes
+³   ³   ÃÄÄÄcomponents
+³   ³   ÃÄÄÄservices
+³   ³   ÃÄÄÄtypes
+³   ³   ÀÄÄÄvalidations
+³   ³           route.schema.ts
+³   ³           
+³   ÃÄÄÄsettings
+³   ÀÄÄÄsupervisors
+ÃÄÄÄservices
+ÃÄÄÄtypes
+ÀÄÄÄutils

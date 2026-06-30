@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Depot {
+  id         String   @id @default(cuid())
+
+  depotCode  String   @unique
+  depotName  String
+
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  routes     Route[]
+}
+
+model Route {
+  id           String   @id @default(cuid())
+
+  routeNo      Int      @unique
+  routeName    String
+
+  depotId      String
+  depot        Depot    @relation(fields: [depotId], references: [id])
+
+  description  String?
+
+  isActive     Boolean  @default(true)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model TicketCategory {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Decimal  @db.Decimal(10,2)
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
