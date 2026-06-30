@@ -17,14 +17,17 @@ model Depot {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  routes     Route[]
+  routes      Route[]
+  supervisors Supervisor[]
 }
+
+
 
 model Route {
   id           String   @id @default(cuid())
 
   routeNo      Int      @unique
-  routeName    String
+  routeName    String   @unique
 
   depotId      String
   depot        Depot    @relation(fields: [depotId], references: [id])
@@ -35,6 +38,8 @@ model Route {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  supervisors  Supervisor[]
 }
 
 model TicketCategory {
@@ -46,4 +51,23 @@ model TicketCategory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Supervisor {
+  id             String   @id @default(cuid())
+
+  supervisorCode String   @unique
+  supervisorName String
+
+  depotId         String
+  depot           Depot    @relation(fields: [depotId], references: [id])
+
+  routeId         String
+  route           Route    @relation(fields: [routeId], references: [id])
+
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 

@@ -6,6 +6,11 @@ import { useEffect, useState } from "react";
 import TextInput from "@/components/common/TextInput";
 import PrimaryButton from "@/components/common/PrimaryButton";
 import { createRoute } from "./route.service";
+import toast from "react-hot-toast";
+
+
+
+
 
 type Props = {
   onSaved: () => void;
@@ -42,9 +47,9 @@ export default function RouteForm({ onSaved }: Props) {
 
       onSaved();
 
-      alert("Route Saved Successfully.");
+      toast.success("Route saved successfully.");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
