@@ -38,15 +38,20 @@ const menus = [
     icon: Route,
   },
   {
-    name: "Supervisors",
-    href: "/supervisors",
-    icon: UserCog,
-  },
-  {
-    name: "Inventory",
-    href: "/inventory",
-    icon: Package,
-  },
+  name: "Supervisors",
+  href: "/supervisors",
+  icon: UserCog,
+},
+{
+  name: "Ticket Categories",
+  href: "/ticket-categories",
+  icon: Ticket,
+},
+{
+  name: "Ticket Stock",
+  href: "/ticket-stock",
+  icon: Package,
+},
   {
     name: "Issue",
     href: "/issue",

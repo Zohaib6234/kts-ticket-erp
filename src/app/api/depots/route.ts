@@ -31,27 +31,27 @@ export async function POST(req: NextRequest) {
       isActive = true,
     } = body;
 
-    if (!depotCode || !depotName) {
-      return NextResponse.json(
-        {
-          message: "Depot Code and Depot Name are required.",
-        },
-        { status: 400 }
-      );
-    }
+    const code = depotCode.trim();
+const name = depotName.trim();
+
+
+    if (!depotCode?.trim() || !depotName?.trim()) {
+  return NextResponse.json(
+    {
+      message: "Depot Code and Depot Name are required.",
+    },
+    { status: 400 }
+  );
+}
 
     const existing = await prisma.depot.findFirst({
-      where: {
-        OR: [
-          {
-            depotCode,
-          },
-          {
-            depotName,
-          },
-        ],
-      },
-    });
+  where: {
+    OR: [
+      { depotCode: code },
+      { depotName: name },
+    ],
+  },
+});
 
     if (existing) {
       return NextResponse.json(
@@ -63,12 +63,12 @@ export async function POST(req: NextRequest) {
     }
 
     const depot = await prisma.depot.create({
-      data: {
-        depotCode,
-        depotName,
-        isActive,
-      },
-    });
+  data: {
+    depotCode: code,
+    depotName: name,
+    isActive,
+  },
+});
 
     return NextResponse.json(depot);
   } catch (error) {

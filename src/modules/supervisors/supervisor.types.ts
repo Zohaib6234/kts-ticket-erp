@@ -1,3 +1,5 @@
+
+
 export interface Depot {
   id: string;
   depotCode: string;
@@ -6,14 +8,21 @@ export interface Depot {
 
 export interface Route {
   id: string;
-
   routeNo: number;
   routeName: string;
+}
+
+export interface Supervisor {
+  id: string;
+
+  supervisorCode: string;
+  supervisorName: string;
 
   depotId: string;
   depot: Depot;
 
-  description?: string;
+  routeId: string;
+  route: Route;
 
   isActive: boolean;
 
@@ -21,13 +30,11 @@ export interface Route {
   updatedAt: string;
 }
 
-export interface RouteFormData {
+export interface SupervisorFormData {
+  supervisorCode: string;
+  supervisorName: string;
+
   depotId: string;
-
-  routeNo: number;
-
-  routeName: string;
-
-  description?: string;
+  routeId: string;
 }
 

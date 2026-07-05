@@ -7,67 +7,183 @@ datasource db {
 }
 
 model Depot {
-  id         String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  depotCode  String   @unique
-  depotName  String
+  depotCode String @unique
+  depotName String @unique
 
-  isActive   Boolean  @default(true)
+  isActive Boolean @default(true)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   routes      Route[]
   supervisors Supervisor[]
+
+  ticketStocks TicketStock[] // ✅ FIX (IMPORTANT)
+  issues       TicketIssue[]
+  ticketBooks  TicketBook[]
 }
 
-
-
 model Route {
-  id           String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  routeNo      Int      @unique
-  routeName    String   @unique
+  routeNo   Int    @unique
+  routeName String @unique
 
-  depotId      String
-  depot        Depot    @relation(fields: [depotId], references: [id])
+  depotId String
+  depot   Depot  @relation(fields: [depotId], references: [id])
 
-  description  String?
+  description String?
 
-  isActive     Boolean  @default(true)
+  isActive Boolean @default(true)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  supervisors  Supervisor[]
+  supervisors Supervisor[]
 }
 
 model TicketCategory {
-  id        String   @id @default(cuid())
-  name      String
-  amount    Decimal  @db.Decimal(10,2)
-  isActive  Boolean  @default(true)
+  id       String  @id @default(cuid())
+  name     String
+  amount   Decimal @db.Decimal(10, 2)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticketStocks TicketStock[]
+  ticketBooks  TicketBook[]
+}
+
+model Supervisor {
+  id String @id @default(cuid())
+
+  supervisorCode String @unique
+  supervisorName String
+
+  depotId String
+  depot   Depot  @relation(fields: [depotId], references: [id])
+
+  routeId String
+  route   Route  @relation(fields: [routeId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issues TicketIssue[]
+}
+
+model TicketStock {
+  id String @id @default(cuid())
+
+  vendor String
+
+  depotId String
+  depot   Depot  @relation(fields: [depotId], references: [id])
+
+  ticketCategoryId String
+  ticketCategory   TicketCategory @relation(fields: [ticketCategoryId], references: [id])
+
+  startingSerial Int
+  endingSerial   Int
+
+  quantity Int
+
+  issuedQuantity Int @default(0)
+
+  balanceQuantity Int
+
+  receivedDate DateTime @default(now())
+
+  remarks String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Supervisor {
-  id             String   @id @default(cuid())
+model TicketIssue {
+  id String @id @default(cuid())
 
-  supervisorCode String   @unique
-  supervisorName String
+  ticketBookId String
+  ticketBook   TicketBook @relation(fields: [ticketBookId], references: [id])
 
-  depotId         String
-  depot           Depot    @relation(fields: [depotId], references: [id])
+  depotId String
+  depot   Depot  @relation(fields: [depotId], references: [id])
 
-  routeId         String
-  route           Route    @relation(fields: [routeId], references: [id])
+  supervisorId String
+  supervisor   Supervisor @relation(fields: [supervisorId], references: [id])
 
-  isActive        Boolean  @default(true)
+  issueDate DateTime @default(now())
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  status IssueStatus @default(ISSUED)
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  closing TicketClosing?
 }
 
+model TicketClosing {
+  id String @id @default(cuid())
 
+  issueId String      @unique
+  issue   TicketIssue @relation(fields: [issueId], references: [id])
+
+  lastSoldSerial Int
+
+  soldQuantity Int
+
+  unsoldQuantity Int
+
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  closingDate DateTime @default(now())
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TicketBook {
+  id String @id @default(cuid())
+
+  startingSerial Int @unique
+  endingSerial   Int
+
+  totalTickets Int @default(100)
+
+  depotId String
+  depot   Depot  @relation(fields: [depotId], references: [id])
+
+  ticketCategoryId String
+  ticketCategory   TicketCategory @relation(fields: [ticketCategoryId], references: [id])
+
+  vendor String
+
+  status BookStatus @default(IN_STOCK)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issues TicketIssue[]
+}
+
+enum BookStatus {
+  IN_STOCK
+  ISSUED
+  MISSING
+  DISCARDED
+}
+
+enum IssueStatus {
+  ISSUED
+  CLOSED
+  MISSING
+}
