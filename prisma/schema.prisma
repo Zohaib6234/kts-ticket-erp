@@ -20,7 +20,7 @@ model Depot {
   routes      Route[]
   supervisors Supervisor[]
 
-  ticketStocks TicketStock[] // ✅ FIX (IMPORTANT)
+  ticketStocks TicketStock[] 
   issues       TicketIssue[]
   ticketBooks  TicketBook[]
 }
@@ -109,13 +109,17 @@ model TicketIssue {
   id String @id @default(cuid())
 
   ticketBookId String
-  ticketBook   TicketBook @relation(fields: [ticketBookId], references: [id])
+  ticketBook TicketBook @relation(fields: [ticketBookId], references: [id])
 
   depotId String
-  depot   Depot  @relation(fields: [depotId], references: [id])
+  depot Depot @relation(fields: [depotId], references: [id])
 
   supervisorId String
-  supervisor   Supervisor @relation(fields: [supervisorId], references: [id])
+  supervisor Supervisor @relation(fields: [supervisorId], references: [id])
+
+  // ADD THESE
+  startingSerial Int
+  endingSerial Int
 
   issueDate DateTime @default(now())
 

@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,11 +18,7 @@ type Depot = {
 type Supervisor = {
   id: string;
   supervisorName: string;
-};
-
-type TicketCategory = {
-  id: string;
-  name: string;
+  depotId: string;
 };
 
 type Props = {
@@ -36,12 +30,13 @@ export default function TicketIssueForm({
 }: Props) {
   const [depots, setDepots] = useState<Depot[]>([]);
   const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
-  const [categories, setCategories] = useState<TicketCategory[]>([]);
 
   const [depotId, setDepotId] = useState("");
   const [supervisorId, setSupervisorId] = useState("");
-  const [ticketCategoryId, setTicketCategoryId] = useState("");
-  const [quantity, setQuantity] = useState("");
+
+  const [firstSerial, setFirstSerial] = useState("");
+  const [lastSerial, setLastSerial] = useState("");
+
   const [remarks, setRemarks] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -49,7 +44,6 @@ export default function TicketIssueForm({
   useEffect(() => {
     loadDepots();
     loadSupervisors();
-    loadCategories();
   }, []);
 
   async function loadDepots() {
@@ -71,34 +65,48 @@ export default function TicketIssueForm({
     }
   }
 
-  async function loadCategories() {
-    try {
-      const res = await fetch("/api/ticket-categories");
-      const data = await res.json();
-      setCategories(data);
-    } catch {
-      toast.error("Failed to load categories");
-    }
-  }
+  const filteredSupervisors = supervisors.filter(
+    (x) => x.depotId === depotId
+  );
 
   async function handleSave() {
+    if (!depotId) {
+      toast.error("Select Depot");
+      return;
+    }
+
+    if (!supervisorId) {
+      toast.error("Select Supervisor");
+      return;
+    }
+
+    if (!firstSerial) {
+      toast.error("Enter First Book First Serial");
+      return;
+    }
+
+    if (!lastSerial) {
+      toast.error("Enter Last Book First Serial");
+      return;
+    }
+
     try {
       setLoading(true);
 
       await createTicketIssue({
         depotId,
         supervisorId,
-        ticketCategoryId,
-        quantity: Number(quantity),
+        firstSerial: Number(firstSerial),
+        lastSerial: Number(lastSerial),
         remarks,
       });
 
-      toast.success("Ticket Issued Successfully");
+      toast.success("Books Issued Successfully");
 
       setDepotId("");
       setSupervisorId("");
-      setTicketCategoryId("");
-      setQuantity("");
+      setFirstSerial("");
+      setLastSerial("");
       setRemarks("");
 
       onSaved();
@@ -113,14 +121,18 @@ export default function TicketIssueForm({
     <div className="rounded-lg border bg-white p-5 space-y-4">
 
       <div>
-        <label className="mb-1 block">Depot</label>
+        <label className="mb-1 block">
+          Depot
+        </label>
 
         <select
+          className="w-full rounded border p-2"
           value={depotId}
           onChange={(e) => setDepotId(e.target.value)}
-          className="w-full rounded border p-2"
         >
-          <option value="">Select Depot</option>
+          <option value="">
+            Select Depot
+          </option>
 
           {depots.map((d) => (
             <option key={d.id} value={d.id}>
@@ -131,16 +143,22 @@ export default function TicketIssueForm({
       </div>
 
       <div>
-        <label className="mb-1 block">Supervisor</label>
+        <label className="mb-1 block">
+          Supervisor
+        </label>
 
         <select
-          value={supervisorId}
-          onChange={(e) => setSupervisorId(e.target.value)}
           className="w-full rounded border p-2"
+          value={supervisorId}
+          onChange={(e) =>
+            setSupervisorId(e.target.value)
+          }
         >
-          <option value="">Select Supervisor</option>
+          <option value="">
+            Select Supervisor
+          </option>
 
-          {supervisors.map((s) => (
+          {filteredSupervisors.map((s) => (
             <option key={s.id} value={s.id}>
               {s.supervisorName}
             </option>
@@ -148,35 +166,18 @@ export default function TicketIssueForm({
         </select>
       </div>
 
-      <div>
-        <label className="mb-1 block">
-          Ticket Category
-        </label>
-
-        <select
-          value={ticketCategoryId}
-          onChange={(e) =>
-            setTicketCategoryId(e.target.value)
-          }
-          className="w-full rounded border p-2"
-        >
-          <option value="">
-            Select Category
-          </option>
-
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <TextInput
+        label="First Book First Serial"
+        type="number"
+        value={firstSerial}
+        onChange={setFirstSerial}
+      />
 
       <TextInput
-        label="Quantity"
+        label="Last Book First Serial"
         type="number"
-        value={quantity}
-        onChange={setQuantity}
+        value={lastSerial}
+        onChange={setLastSerial}
       />
 
       <TextInput
@@ -186,10 +187,11 @@ export default function TicketIssueForm({
       />
 
       <PrimaryButton onClick={handleSave}>
-        {loading ? "Issuing..." : "Issue Tickets"}
+        {loading
+          ? "Issuing..."
+          : "Issue Books"}
       </PrimaryButton>
 
     </div>
   );
 }
-

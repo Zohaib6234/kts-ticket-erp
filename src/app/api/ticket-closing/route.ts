@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -6,9 +5,17 @@ export async function GET() {
   try {
     const closings = await prisma.ticketClosing.findMany({
       include: {
-        supervisor: true,
-        ticketCategory: true,
-        issue: true,
+        issue: {
+          include: {
+            supervisor: true,
+            depot: true,
+            ticketBook: {
+              include: {
+                ticketCategory: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         closingDate: "desc",
@@ -20,7 +27,7 @@ export async function GET() {
     console.error(error);
 
     return NextResponse.json(
-      { message: "Failed to fetch ticket closings." },
+      { message: "Failed to fetch closings." },
       { status: 500 }
     );
   }
@@ -30,112 +37,114 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const {
-      issueId,
-      supervisorId,
-      ticketCategoryId,
-      soldQuantity,
-      returnedQuantity,
-      remarks,
-    } = body;
+    const { lastSoldSerial, remarks } = body;
 
-    if (
-      !issueId ||
-      !supervisorId ||
-      !ticketCategoryId ||
-      soldQuantity === undefined ||
-      returnedQuantity === undefined
-    ) {
+    if (lastSoldSerial === undefined) {
       return NextResponse.json(
-        { message: "All required fields are mandatory." },
-        { status: 400 }
+        {
+          message: "Last Sold Ticket Serial is required.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    // Prevent duplicate closing
-    const existing = await prisma.ticketClosing.findFirst({
+    const issue = await prisma.ticketIssue.findFirst({
       where: {
-        issueId,
-      },
-    });
+        status: "ISSUED",
 
-    if (existing) {
-      return NextResponse.json(
-        { message: "Closing already exists for this issue." },
-        { status: 400 }
-      );
-    }
+        startingSerial: {
+          lte: Number(lastSoldSerial),
+        },
 
-    // Get Issue
-    const issue = await prisma.ticketIssue.findUnique({
-      where: {
-        id: issueId,
+        endingSerial: {
+          gte: Number(lastSoldSerial),
+        },
       },
       include: {
-        ticketCategory: true,
+        ticketBook: {
+          include: {
+            ticketCategory: true,
+          },
+        },
       },
     });
 
     if (!issue) {
       return NextResponse.json(
-        { message: "Issue record not found." },
-        { status: 404 }
-      );
-    }
-
-    const issuedQuantity = issue.quantity;
-
-    if (
-      soldQuantity + returnedQuantity >
-      issuedQuantity
-    ) {
-      return NextResponse.json(
         {
-          message:
-            "Sold + Returned cannot exceed Issued Quantity.",
+          message: "Issued book not found.",
         },
-        { status: 400 }
+        {
+          status: 404,
+        }
       );
     }
 
-    const missingQuantity =
-      issuedQuantity -
-      soldQuantity -
-      returnedQuantity;
+    const soldQuantity =
+      Number(lastSoldSerial) -
+      issue.startingSerial +
+      1;
 
-    const totalAmount =
-      Number(issue.ticketCategory.amount) *
+    const unsoldQuantity =
+      issue.ticketBook.totalTickets -
       soldQuantity;
 
-    const closing = await prisma.ticketClosing.create({
-      data: {
-        issueId,
-        supervisorId,
-        ticketCategoryId,
+    const totalAmount =
+      soldQuantity *
+      Number(issue.ticketBook.ticketCategory.amount);
 
-        issuedQuantity,
-        soldQuantity: Number(soldQuantity),
-        returnedQuantity: Number(returnedQuantity),
-        missingQuantity,
+    const result = await prisma.$transaction(async (tx) => {
+      const closing =
+        await tx.ticketClosing.create({
+          data: {
+            issueId: issue.id,
 
-        totalAmount,
-        remarks,
-      },
-      include: {
-        supervisor: true,
-        ticketCategory: true,
-        issue: true,
-      },
+            lastSoldSerial: Number(lastSoldSerial),
+
+            soldQuantity,
+
+            unsoldQuantity,
+
+            totalAmount,
+
+            remarks,
+          },
+        });
+
+      await tx.ticketIssue.update({
+        where: {
+          id: issue.id,
+        },
+        data: {
+          status: "CLOSED",
+        },
+      });
+
+      await tx.ticketBook.update({
+        where: {
+          id: issue.ticketBookId,
+        },
+        data: {
+          status: "DISCARDED",
+        },
+      });
+
+      return closing;
     });
 
-    return NextResponse.json(closing);
+    return NextResponse.json(result);
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { message: "Failed to save closing." },
-      { status: 500 }
+      {
+        message: "Failed to close book.",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
-

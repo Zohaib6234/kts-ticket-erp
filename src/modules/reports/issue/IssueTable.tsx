@@ -1,12 +1,14 @@
+
+
 "use client";
 
-import { TicketIssue } from "./ticketIssue.types";
+import { IssueReport } from "./issue.types";
 
 type Props = {
-  issues: TicketIssue[];
+  issues: IssueReport[];
 };
 
-export default function TicketIssueTable({
+export default function IssueTable({
   issues,
 }: Props) {
   return (
@@ -14,6 +16,10 @@ export default function TicketIssueTable({
       <table className="min-w-full text-sm">
         <thead className="bg-slate-100">
           <tr>
+            <th className="px-4 py-3 text-left">
+              Issue Date
+            </th>
+
             <th className="px-4 py-3 text-left">
               Depot
             </th>
@@ -23,11 +29,7 @@ export default function TicketIssueTable({
             </th>
 
             <th className="px-4 py-3 text-left">
-              Book First Serial
-            </th>
-
-            <th className="px-4 py-3 text-left">
-              Book Last Serial
+              Book No.
             </th>
 
             <th className="px-4 py-3 text-left">
@@ -37,14 +39,6 @@ export default function TicketIssueTable({
             <th className="px-4 py-3 text-left">
               Status
             </th>
-
-            <th className="px-4 py-3 text-left">
-              Issue Date
-            </th>
-
-            <th className="px-4 py-3 text-left">
-              Remarks
-            </th>
           </tr>
         </thead>
 
@@ -52,10 +46,10 @@ export default function TicketIssueTable({
           {issues.length === 0 ? (
             <tr>
               <td
-                colSpan={8}
+                colSpan={6}
                 className="py-8 text-center text-gray-500"
               >
-                No Ticket Issues Found
+                No Issue Records Found
               </td>
             </tr>
           ) : (
@@ -65,6 +59,12 @@ export default function TicketIssueTable({
                 className="border-t hover:bg-slate-50"
               >
                 <td className="px-4 py-3">
+                  {new Date(
+                    issue.issueDate
+                  ).toLocaleDateString()}
+                </td>
+
+                <td className="px-4 py-3">
                   {issue.depot.depotName}
                 </td>
 
@@ -72,12 +72,8 @@ export default function TicketIssueTable({
                   {issue.supervisor.supervisorName}
                 </td>
 
-                <td className="px-4 py-3 font-medium">
-                  {issue.startingSerial}
-                </td>
-
-                <td className="px-4 py-3 font-medium">
-                  {issue.endingSerial}
+                <td className="px-4 py-3 font-semibold">
+                  {issue.ticketBook.startingSerial}
                 </td>
 
                 <td className="px-4 py-3">
@@ -87,16 +83,6 @@ export default function TicketIssueTable({
                 <td className="px-4 py-3">
                   {issue.status}
                 </td>
-
-                <td className="px-4 py-3">
-                  {new Date(
-                    issue.issueDate
-                  ).toLocaleDateString()}
-                </td>
-
-                <td className="px-4 py-3">
-                  {issue.remarks || "-"}
-                </td>
               </tr>
             ))
           )}
@@ -105,4 +91,3 @@ export default function TicketIssueTable({
     </div>
   );
 }
-

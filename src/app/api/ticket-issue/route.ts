@@ -1,5 +1,3 @@
-
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -9,7 +7,11 @@ export async function GET() {
       include: {
         depot: true,
         supervisor: true,
-        ticketCategory: true,
+        ticketBook: {
+          include: {
+            ticketCategory: true,
+          },
+        },
       },
       orderBy: {
         issueDate: "desc",
@@ -34,16 +36,16 @@ export async function POST(req: NextRequest) {
     const {
       depotId,
       supervisorId,
-      ticketCategoryId,
-      quantity,
+      firstSerial,
+      lastSerial,
       remarks,
     } = body;
 
     if (
       !depotId ||
       !supervisorId ||
-      !ticketCategoryId ||
-      !quantity
+      firstSerial === undefined ||
+      lastSerial === undefined
     ) {
       return NextResponse.json(
         {
@@ -53,67 +55,90 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find stock for depot + category
-    const stock = await prisma.ticketStock.findFirst({
-      where: {
-        depotId,
-        ticketCategoryId,
-      },
-    });
-
-    if (!stock) {
+    if (Number(lastSerial) < Number(firstSerial)) {
       return NextResponse.json(
         {
-          message: "Ticket stock not found.",
-        },
-        { status: 404 }
-      );
-    }
-
-    if (stock.balanceQuantity < Number(quantity)) {
-      return NextResponse.json(
-        {
-          message: "Insufficient ticket stock.",
+          message:
+            "Last Book First Serial must be greater than or equal to First Book First Serial.",
         },
         { status: 400 }
       );
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const issue = await tx.ticketIssue.create({
-        data: {
-          depotId,
-          supervisorId,
-          ticketCategoryId,
-          quantity: Number(quantity),
-          remarks,
+    const books = await prisma.ticketBook.findMany({
+      where: {
+        depotId,
+        startingSerial: {
+          gte: Number(firstSerial),
+          lte: Number(lastSerial),
         },
-      });
-
-      await tx.ticketStock.update({
-        where: {
-          id: stock.id,
-        },
-        data: {
-          issuedQuantity: {
-            increment: Number(quantity),
-          },
-          balanceQuantity: {
-            decrement: Number(quantity),
-          },
-        },
-      });
-
-      return issue;
+      },
+      orderBy: {
+        startingSerial: "asc",
+      },
     });
 
-    return NextResponse.json(result);
+    if (books.length === 0) {
+      return NextResponse.json(
+        {
+          message: "No books found in this range.",
+        },
+        { status: 404 }
+      );
+    }
+
+    for (const book of books) {
+      if (book.status !== "IN_STOCK") {
+        return NextResponse.json(
+          {
+            message: `Book ${book.startingSerial} is already ${book.status}.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (const book of books) {
+        await tx.ticketIssue.create({
+          data: {
+            depotId,
+            supervisorId,
+
+            ticketBookId: book.id,
+
+            // Required fields
+            startingSerial: book.startingSerial,
+            endingSerial: book.endingSerial,
+
+            status: "ISSUED",
+
+            issueDate: new Date(),
+
+            remarks,
+          },
+        });
+
+        await tx.ticketBook.update({
+          where: {
+            id: book.id,
+          },
+          data: {
+            status: "ISSUED",
+          },
+        });
+      }
+    });
+
+    return NextResponse.json({
+      message: `${books.length} book(s) issued successfully.`,
+    });
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
       {
-        message: "Failed to issue tickets.",
+        message: "Failed to issue books.",
       },
       {
         status: 500,
@@ -121,4 +146,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

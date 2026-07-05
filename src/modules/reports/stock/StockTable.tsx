@@ -1,33 +1,34 @@
+
+
 "use client";
 
-import { TicketIssue } from "./ticketIssue.types";
+import { StockBook } from "./stock.types";
 
 type Props = {
-  issues: TicketIssue[];
+  books: StockBook[];
 };
 
-export default function TicketIssueTable({
-  issues,
+export default function StockTable({
+  books,
 }: Props) {
   return (
     <div className="overflow-x-auto rounded-lg border bg-white shadow-sm">
       <table className="min-w-full text-sm">
+
         <thead className="bg-slate-100">
+
           <tr>
+
+            <th className="px-4 py-3 text-left">
+              First Serial
+            </th>
+
+            <th className="px-4 py-3 text-left">
+              Last Serial
+            </th>
+
             <th className="px-4 py-3 text-left">
               Depot
-            </th>
-
-            <th className="px-4 py-3 text-left">
-              Supervisor
-            </th>
-
-            <th className="px-4 py-3 text-left">
-              Book First Serial
-            </th>
-
-            <th className="px-4 py-3 text-left">
-              Book Last Serial
             </th>
 
             <th className="px-4 py-3 text-left">
@@ -35,74 +36,80 @@ export default function TicketIssueTable({
             </th>
 
             <th className="px-4 py-3 text-left">
+              Vendor
+            </th>
+
+            <th className="px-4 py-3 text-center">
               Status
             </th>
 
-            <th className="px-4 py-3 text-left">
-              Issue Date
-            </th>
-
-            <th className="px-4 py-3 text-left">
-              Remarks
-            </th>
           </tr>
+
         </thead>
 
         <tbody>
-          {issues.length === 0 ? (
+
+          {books.length === 0 ? (
+
             <tr>
+
               <td
-                colSpan={8}
+                colSpan={6}
                 className="py-8 text-center text-gray-500"
               >
-                No Ticket Issues Found
+                No Stock Available
               </td>
+
             </tr>
+
           ) : (
-            issues.map((issue) => (
+
+            books.map((book) => (
+
               <tr
-                key={issue.id}
+                key={book.id}
                 className="border-t hover:bg-slate-50"
               >
-                <td className="px-4 py-3">
-                  {issue.depot.depotName}
-                </td>
-
-                <td className="px-4 py-3">
-                  {issue.supervisor.supervisorName}
-                </td>
 
                 <td className="px-4 py-3 font-medium">
-                  {issue.startingSerial}
-                </td>
-
-                <td className="px-4 py-3 font-medium">
-                  {issue.endingSerial}
+                  {book.startingSerial}
                 </td>
 
                 <td className="px-4 py-3">
-                  {issue.ticketBook.ticketCategory.name}
+                  {book.endingSerial}
                 </td>
 
                 <td className="px-4 py-3">
-                  {issue.status}
+                  {book.depot.depotName}
                 </td>
 
                 <td className="px-4 py-3">
-                  {new Date(
-                    issue.issueDate
-                  ).toLocaleDateString()}
+                  {book.ticketCategory.name}
                 </td>
 
                 <td className="px-4 py-3">
-                  {issue.remarks || "-"}
+                  {book.vendor}
                 </td>
+
+                <td className="px-4 py-3 text-center">
+
+                  <span className="rounded bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+
+                    IN STOCK
+
+                  </span>
+
+                </td>
+
               </tr>
+
             ))
+
           )}
+
         </tbody>
+
       </table>
     </div>
   );
 }
-

@@ -12,30 +12,33 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Restore sidebar state
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-open");
 
-    if (saved) {
+    if (saved !== null) {
       setSidebarOpen(saved === "true");
+    } else {
+      // Desktop par default open
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      }
     }
   }, []);
 
-  // Save sidebar state
   useEffect(() => {
-    localStorage.setItem("sidebar-open", String(sidebarOpen));
+    localStorage.setItem(
+      "sidebar-open",
+      String(sidebarOpen)
+    );
   }, [sidebarOpen]);
 
-  // Keyboard Shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Ctrl + B = Toggle Sidebar
       if (e.ctrlKey && e.key.toLowerCase() === "b") {
         e.preventDefault();
         setSidebarOpen((prev) => !prev);
       }
 
-      // ESC = Close Sidebar
       if (e.key === "Escape") {
         setSidebarOpen(false);
       }
@@ -43,9 +46,11 @@ export default function DashboardLayout({
 
     window.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
   }, []);
 
   return (
@@ -61,7 +66,7 @@ export default function DashboardLayout({
         onClose={() => setSidebarOpen(false)}
       />
 
-      <section className="pt-20 px-4 md:px-8">
+      <section className="pt-20 px-4 md:px-8 md:ml-64">
         {children}
       </section>
     </main>

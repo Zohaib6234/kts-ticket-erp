@@ -1,3 +1,5 @@
+
+
 export interface Depot {
   id: string;
   depotCode: string;
@@ -31,39 +33,21 @@ export interface TicketBook {
   ticketCategory: TicketCategory;
 }
 
-export interface TicketIssue {
+export interface IssueReport {
   id: string;
 
-  depotId: string;
   depot: Depot;
 
-  supervisorId: string;
   supervisor: Supervisor;
 
-  ticketBookId: string;
   ticketBook: TicketBook;
 
-  startingSerial: number;
-  endingSerial: number;
+  issueDate: string;
 
   status: string;
-
-  issueDate: string;
 
   remarks?: string;
 
   createdAt: string;
   updatedAt: string;
-}
-
-export interface TicketIssueFormData {
-  depotId: string;
-
-  supervisorId: string;
-
-  firstSerial: number;
-
-  lastSerial: number;
-
-  remarks?: string;
 }
